@@ -19,7 +19,7 @@ def get_db(): #Получает сессию для отправки запро�
 
 
 
-@messages_route.get('/get', tags=["Message"])
+@messages_route.get('/get', tags=["Message"], response_model=list[schemas.Message])
 async def message_get(recipient_id: Optional[int] = Query(None), group_id: Optional[int] = Query(None), limit: Optional[int] = Query(50), credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
     if(auth_handler.decode_token(credentials.credentials)):
         token = credentials.credentials

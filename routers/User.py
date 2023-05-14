@@ -24,11 +24,18 @@ async def download_file(response: Response, user_id: int, db: Session = Depends(
     if(auth_handler.decode_token(credentials.credentials)):
         file_info_from_db = get_file_from_db(db, user_id)
         if file_info_from_db:
-            file_resp = FileResponse(UPLOADED_FILES_PATH + file_info_from_db.name,
-                                    media_type=file_info_from_db.mime_type,
-                                    filename=file_info_from_db.name)
-            response.status_code = status.HTTP_200_OK
-            return file_resp
+            try:
+                file_resp = FileResponse(UPLOADED_FILES_PATH + file_info_from_db.name,
+                                        media_type=file_info_from_db.mime_type,
+                                        filename=file_info_from_db.name)
+                response.status_code = status.HTTP_200_OK
+                return file_resp
+            except FileNotFoundError:
+                raise HTTPException(404)
+            except RuntimeError:
+                raise HTTPException(404)
+            except:
+                raise HTTPException(404)
         else:
             raise HTTPException(404)
     else:
