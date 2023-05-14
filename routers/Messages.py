@@ -10,7 +10,7 @@ messages_route = APIRouter()
 security = HTTPBearer()
 
 
-def get_db(): #Получает сессию для отправки запросов
+def get_db():  # Получает сессию для отправки запросов
     db = SessionLocal()
     try:
         yield db
@@ -18,13 +18,12 @@ def get_db(): #Получает сессию для отправки запро�
         db.close()
 
 
-
 @messages_route.get('/get', tags=["Message"], response_model=list[schemas.Message])
 async def message_get(recipient_id: Optional[int] = Query(None), group_id: Optional[int] = Query(None), limit: Optional[int] = Query(50), credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
-    if(auth_handler.decode_token(credentials.credentials)):
+    if (auth_handler.decode_token(credentials.credentials)):
         token = credentials.credentials
-        sender = getUser(db, auth_handler.decode_token(token))
-        recipient = getUserById(db, recipient_id)
+        sender = get_user(db, auth_handler.decode_token(token))
+        recipient = get_user_by_id(db, recipient_id)
         if (recipient_id != None and group_id != None) or (recipient_id == None and group_id == None):
             raise HTTPException(400)
         if recipient_id != None:
@@ -51,23 +50,19 @@ class ConnectionManager:
         return True
 
     def disconnect(self, websocket: WebSocket):
-        del self.active_connections[list(filter(lambda x: self.active_connections[x] == websocket, self.active_connections))[0]]
+        del self.active_connections[list(filter(
+            lambda x: self.active_connections[x] == websocket, self.active_connections))[0]]
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
-        
-        
-        
+
     async def send_user_message(self, message: str, user_id: int):
         websocket = self.active_connections[user_id]
         await websocket.send_text(message)
-        
-        
-        
-    async def broadcast(self, message: str):
-        for user_id, connection  in self.active_connections.items():
-            await connection.send_text(message)
 
+    async def broadcast(self, message: str):
+        for user_id, connection in self.active_connections.items():
+            await connection.send_text(message)
 
 
 manager = ConnectionManager()
@@ -79,6 +74,7 @@ keys = [
     "message_text"
 ]
 
+
 @messages_route.websocket("/ws/{user_id}")
 async def websocket(websocket: WebSocket, user_id, db: Session = Depends(get_db)):
     if await manager.connect(websocket, int(user_id)) == False:
@@ -87,8 +83,7 @@ async def websocket(websocket: WebSocket, user_id, db: Session = Depends(get_db)
         while True:
             data: dict = json.loads(await websocket.receive_text())
             if keys == list(data.keys()):
-                newMessage(db, data)
-            await manager.send_personal_message(f"{data}", websocket)
-            await manager.broadcast(f"{data}")
+                message = new_message(db, data)
+            await manager.broadcast(f"{message_to_out(message)}")
     except WebSocketDisconnect:
         manager.disconnect(websocket)

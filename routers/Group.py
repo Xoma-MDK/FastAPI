@@ -10,7 +10,7 @@ group_route = APIRouter()
 security = HTTPBearer()
 
 
-def get_db(): #Получает сессию для отправки запросов
+def get_db():  # Получает сессию для отправки запросов
     db = SessionLocal()
     try:
         yield db

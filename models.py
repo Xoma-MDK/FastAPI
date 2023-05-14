@@ -11,7 +11,8 @@ class User(Base):
     username = Column(String(50), nullable=False, unique=True)
     password_hash = Column(String(255), nullable=False)
     token = Column(String(255), nullable=True)
-    last_active_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    last_active_at = Column(TIMESTAMP, nullable=False,
+                            server_default=text("CURRENT_TIMESTAMP"))
 
 
 class ChatGroup(Base):
@@ -20,10 +21,10 @@ class ChatGroup(Base):
     id = Column(INTEGER(11), primary_key=True)
     name = Column(String(255), nullable=False)
     creator_id = Column(ForeignKey('users.id'), nullable=False, index=True)
-    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    created_at = Column(TIMESTAMP, nullable=False,
+                        server_default=text("CURRENT_TIMESTAMP"))
 
     creator = relationship('User')
-
 
 
 class ChatGroupMember(Base):
@@ -45,10 +46,12 @@ class Message(Base):
     recipient_id = Column(ForeignKey('users.id'), index=True)
     group_id = Column(ForeignKey('chat_groups.id'), index=True)
     message_text = Column(Text, nullable=False)
-    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    created_at = Column(TIMESTAMP, nullable=False,
+                        server_default=text("CURRENT_TIMESTAMP"))
 
     group = relationship('ChatGroup')
-    recipient = relationship('User', primaryjoin='Message.recipient_id == User.id')
+    recipient = relationship(
+        'User', primaryjoin='Message.recipient_id == User.id')
     sender = relationship('User', primaryjoin='Message.sender_id == User.id')
 
 
@@ -71,7 +74,8 @@ class Avatars(Base):
     user_id = Column(ForeignKey('users.id'), nullable=False, index=True)
     size = Column(INTEGER)
     mime_type = Column(String(length=150))
-    edited_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    edited_at = Column(TIMESTAMP, nullable=False,
+                       server_default=text("CURRENT_TIMESTAMP"))
 
 
 class UnreadMessage(Base):
@@ -83,5 +87,6 @@ class UnreadMessage(Base):
 
     message = relationship('Message')
     user = relationship('User')
+
 
 Base.metadata.create_all(engine)
