@@ -1,12 +1,12 @@
 import models
 from sqlalchemy.orm import Session
 from typing import List
-from schemas import UserCreate, UserOut, Message
+from schemas import UserCreate, UserOut, Message, MessageOut, MessageEncoder
 from fastapi import HTTPException
 import os
 from datetime import datetime
 from auth import Auth
-
+import json
 UPLOADED_FILES_PATH = "./uploaded_files/"
 
 auth_handler = Auth()
@@ -81,16 +81,16 @@ def new_message(db: Session, data: dict):
     return (new_message_in_db)
 
 
-def message_to_out(message: models.Message):
-    message_out = Message(
+def message_to_out_json(message: models.Message):
+    message_out = MessageOut(
         id=message.id,
         sender_id=message.sender_id,
         recipient_id=message.recipient_id,
         group_id=message.group_id,
         message_text=message.message_text,
-        created_at=message.created_at
+        created_at=message.created_at.isoformat()
     )
-    return message_out
+    return json.dumps(message_out, cls=MessageEncoder)
 
 
 def get_file_from_db(db: Session, user_id):

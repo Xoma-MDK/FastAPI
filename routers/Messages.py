@@ -84,6 +84,6 @@ async def websocket(websocket: WebSocket, user_id, db: Session = Depends(get_db)
             data: dict = json.loads(await websocket.receive_text())
             if keys == list(data.keys()):
                 message = new_message(db, data)
-            await manager.broadcast(f"{message_to_out(message)}")
+            await manager.broadcast(f"{message_to_out_json(message)}")
     except WebSocketDisconnect:
         manager.disconnect(websocket)
