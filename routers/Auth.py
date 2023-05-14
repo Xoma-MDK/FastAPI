@@ -18,8 +18,9 @@ def get_db(): #Получает сессию для отправки запро�
 
 
 
-@auth_route.post('/signup', tags=["Auth"])
+@auth_route.post('/signup', tags=["Auth"], response_model = schemas.Tokens)
 def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    if user.username == "" or user.password == "": raise HTTPException(400)
     if getUser(db, user.username) != None:
          raise HTTPException(status_code=409, detail='Account already exists') 
     
@@ -50,24 +51,24 @@ def login(user_details: schemas.UserLogin, db: Session = Depends(get_db)):
 
 
 
-@auth_route.post('/refresh', tags=["Auth"])
+@auth_route.post('/refresh', tags=["Auth"], response_model = schemas.Tokens)
 def refresh_token(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
     refresh_token = credentials.credentials
     user = getUser(db, auth_handler.decode_refresh_token(refresh_token))
-    
     if(not auth_handler.verify_Tokens(refresh_token, user.token)):
         updateUserRefreshToken(db, user, None)
+        print(123)
         raise HTTPException(status_code=401, detail = 'Invalid refresh token')
     
     new_token = auth_handler.refresh_token(refresh_token)
-    refresh_token = auth_handler.encode_refresh_token(user.Login)
+    refresh_token = auth_handler.encode_refresh_token(user.username)
     updateUserRefreshToken(db, user, auth_handler.get_token_hash(refresh_token))
     
     return schemas.Tokens(access_token = new_token, refresh_token = refresh_token)
 
 
 
-@auth_route.post('/logout', tags=["Auth"])
+@auth_route.post('/logout', tags=["Auth"], response_model = None)
 def logout(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
     token = credentials.credentials
     
