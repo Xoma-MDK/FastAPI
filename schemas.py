@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Union
-
+from datetime import datetime
 class UserBase(BaseModel):
     username: str
     
@@ -28,4 +28,12 @@ class Tokens(BaseModel):
         
 class UserOut(UserBase):
     id: int
-    
+
+
+class Message(BaseModel):
+    id: int
+    sender_id: int
+    recipient_id: Union[int, None]
+    group_id: Union[int, None]
+    message_text: str
+    created_at: datetime

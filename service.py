@@ -1,7 +1,7 @@
 import models
 from sqlalchemy.orm import Session
 from typing import List
-from schemas import UserCreate, UserOut
+from schemas import UserCreate, UserOut, Message
 from fastapi import HTTPException
 import os
 from datetime import datetime
@@ -29,6 +29,15 @@ def getUser(db: Session, username: str):
         db.commit()
     return user_db
 
+
+
+def getUserById(db: Session, id: int):
+    user_db = db.query(models.User).filter(models.User.id == id).first()
+    if user_db != None:
+        user_db.last_active_at = datetime.now()
+        db.add(user_db)
+        db.commit()
+    return user_db
 
 
 def postUser(db: Session, User: UserCreate):
@@ -72,7 +81,7 @@ def newMessage(db: Session, data: dict):
     db.commit()
     return(new_message)
 
-def get_file_from_db(db, user_id):
+def get_file_from_db(db: Session, user_id):
     return db.query(models.Avatars).filter(models.Avatars.user_id == user_id).first()
 
 
@@ -98,7 +107,7 @@ def delete_file_from_uploads(file_name):
         print(e)
 
 
-def add_file_to_db(db, **kwargs):
+def add_file_to_db(db: Session, **kwargs):
     new_file = models.Avatars(
                                 name=kwargs['name'],
                                 user_id=kwargs['user_id'],
@@ -111,7 +120,7 @@ def add_file_to_db(db, **kwargs):
     db.refresh(new_file)
     return new_file
 
-def update_file_in_db(db, **kwargs):
+def update_file_in_db(db: Session, **kwargs):
     update_file = db.query(models.Avatars).filter(models.Avatars.user_id == kwargs['user_id']).first()
     update_file.name = kwargs['name']
     update_file.user_id = kwargs['user_id']
@@ -124,7 +133,7 @@ def update_file_in_db(db, **kwargs):
     return update_file
 
 
-def delete_file_from_db(db, file_info_from_db):
+def delete_file_from_db(db: Session, file_info_from_db):
     db.delete(file_info_from_db)
     db.commit()
     
@@ -132,3 +141,41 @@ def delete_file_from_db(db, file_info_from_db):
 def format_filename(file):
     filename, ext = os.path.splitext(file.filename)
     return filename + ext
+
+
+async def get_messages(
+    db: Session, 
+    sender_user: models.User, 
+    recipient_user: models.User = None,
+    group_id: int = None,
+    limit: int = 50
+    ):
+     messages = []
+     if recipient_user != None:
+        messages_id_db = db.query(models.Message).filter(
+            models.Message.sender == sender_user,
+            models.Message.recipient == recipient_user
+         ).limit(limit).all()
+        for message_in_db in messages_id_db:
+            message = Message(
+                id = message_in_db.id,
+                sender_id = message_in_db.sender_id,
+                recipient_id = message_in_db.recipient_id,
+                message_text = message_in_db.message_text,
+                created_at = message_in_db.created_at
+            )
+            messages.append(message)
+     if group_id != None:
+        messages_id_db = db.query(models.Message).filter(
+            models.Message.group_id == group_id
+         ).limit(limit).all()
+        for message_in_db in messages_id_db:
+            message = Message(
+                id = message_in_db.id,
+                sender_id = message_in_db.sender_id,
+                recipient_id = message_in_db.recipient_id,
+                message_text = message_in_db.message_text,
+                created_at = message_in_db.created_at
+            )
+            messages.append(message)
+     return messages

@@ -7,10 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI( title="FastAPI Chat", docs_url="/api/docs", openapi_url="/api/openapi.json", version="1.0", debug=True)
 
-origins = ["https://bigeny.ru",
-                       "http://bigeny.ru",
-                       "http://5.44.168.151:3000",
-                       "http://5.44.168.151"]
+origins = [
+        "http://localhost",
+        "http://localhost:3000",
+        "http://localhost:8123",
+]
 
 app.include_router(Auth.auth_route, prefix="/api/auth")
 app.include_router(Messages.messages_route, prefix="/api/messages")

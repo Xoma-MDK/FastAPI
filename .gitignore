@@ -4,3 +4,7 @@
 /облако.png
 routers/__pycache__/
 .gitignore
+routers/__pycache__/*
+routers/__pycache__/Messages.cpython-311.pyc
+
+

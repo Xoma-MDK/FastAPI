@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Security, WebSocket, WebSocketDisconnect
+from typing import Optional
+from fastapi import APIRouter, Depends, Query, Security, WebSocket, WebSocketDisconnect
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from database import SessionLocal
 import schemas
@@ -15,6 +16,25 @@ def get_db(): #Получает сессию для отправки запро�
         yield db
     finally:
         db.close()
+
+
+
+@messages_route.get('/get', tags=["Message"])
+async def message_get(recipient_id: Optional[int] = Query(None), group_id: Optional[int] = Query(None), limit: Optional[int] = Query(50), credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
+    if(auth_handler.decode_token(credentials.credentials)):
+        token = credentials.credentials
+        sender = getUser(db, auth_handler.decode_token(token))
+        recipient = getUserById(db, recipient_id)
+        if (recipient_id != None and group_id != None) or (recipient_id == None and group_id == None):
+            raise HTTPException(400)
+        if recipient_id != None:
+            messages = await get_messages(db, sender, recipient, None, limit)
+            return messages
+        if group_id != None:
+            messages = await get_messages(db, sender, None, group_id, limit)
+            return messages
+    else:
+        auth_handler.decode_token(credentials.credentials)
 
 
 class ConnectionManager:
@@ -59,7 +79,7 @@ keys = [
     "message_text"
 ]
 
-@messages_route.websocket("/ws/messanger/{user_id}")
+@messages_route.websocket("/ws/{user_id}")
 async def websocket(websocket: WebSocket, user_id, db: Session = Depends(get_db)):
     if await manager.connect(websocket, int(user_id)) == False:
         return
