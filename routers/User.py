@@ -25,11 +25,12 @@ async def download_file(response: Response, user_id: int, db: Session = Depends(
         file_info_from_db = get_file_from_db(db, user_id)
         if file_info_from_db:
             try:
-                file_resp = FileResponse(UPLOADED_FILES_PATH + file_info_from_db.name,
-                                        media_type=file_info_from_db.mime_type,
-                                        filename=file_info_from_db.name)
-                response.status_code = status.HTTP_200_OK
-                return file_resp
+                if os.path.exists(UPLOADED_FILES_PATH + file_info_from_db.name):
+                    file_resp = FileResponse(UPLOADED_FILES_PATH + file_info_from_db.name,
+                                            media_type=file_info_from_db.mime_type,
+                                            filename=file_info_from_db.name)
+                    response.status_code = status.HTTP_200_OK
+                    return file_resp
             except FileNotFoundError:
                 raise HTTPException(404)
             except RuntimeError:
@@ -74,14 +75,23 @@ def users(credentials: HTTPAuthorizationCredentials = Security(security), db: Se
         auth_handler.decode_token(credentials.credentials)
 
 
+@user_route.get('/get', tags=["User"], response_model = schemas.UserOut)
+def me(user_id:int, credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
+    if(auth_handler.decode_token(credentials.credentials)):
+        user = getUserById(db, user_id)
+        return schemas.UserOut(id = user.id, username = user.username)
+    else:
+        auth_handler.decode_token(credentials.credentials)
+
+
+
 @user_route.get('/me', tags=["User"], response_model = schemas.UserOut)
 def me(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
     if(auth_handler.decode_token(credentials.credentials)):
         user = getUser(db, auth_handler.decode_token(credentials.credentials))
         return schemas.UserOut(id = user.id, username = user.username)
     else:
-        auth_handler.decode_token(credentials.credentials)
-        
+        auth_handler.decode_token(credentials.credentials)        
 
 
 @user_route.post('/edit', tags=["User"], response_model = schemas.UserOut)
