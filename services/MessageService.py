@@ -1,6 +1,6 @@
 import models
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from schemas import MessageOut, MessageEncoder, Message
 import json
 
@@ -40,10 +40,10 @@ async def get_messages(
     if recipient_user != None:
         messages_id_db = db.query(models.Message).filter(
             or_(
-                models.Message.sender == sender_user,
-                models.Message.recipient == recipient_user,
-                models.Message.sender == recipient_user,
-                models.Message.recipient == sender_user
+                and_(models.Message.sender == sender_user,
+                     models.Message.recipient == recipient_user),
+                and_(models.Message.sender == recipient_user,
+                     models.Message.recipient == sender_user)
             )
         ).order_by(models.Message.created_at.desc()).limit(limit).all()
         if messages_id_db != []:
