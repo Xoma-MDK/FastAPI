@@ -1,13 +1,17 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Query, Security, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Query, Security, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from database import SessionLocal
+from sqlalchemy.orm import Session
 import schemas
-from service import *
-from auth import Auth
+from services.AuthService import Auth
+from services.MessageService import get_messages, new_message, message_to_out_json
+from services.UserService import get_user, get_user_by_id
 import json
+
 messages_route = APIRouter()
 security = HTTPBearer()
+auth_handler = Auth()
 
 
 def get_db():  # Получает сессию для отправки запросов

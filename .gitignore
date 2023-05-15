@@ -5,5 +5,6 @@
 /routers/__pycache__
 /routers/__pycache__/*
 /routers/__pycache__/Messages.cpython-311.pyc
-
-
+/services/__pycache__/*
+/services/__pycache__
+settings.py
