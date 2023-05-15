@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import models
 from sqlalchemy.orm import Session
 
+
 class Auth():
     hasher_bcrypt = CryptContext(schemes=['bcrypt'])
     hasher_sha256 = CryptContext(schemes=["sha256_crypt"])

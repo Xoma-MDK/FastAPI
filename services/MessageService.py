@@ -4,6 +4,7 @@ from sqlalchemy import or_
 from schemas import MessageOut, MessageEncoder, Message
 import json
 
+
 def new_message(db: Session, data: dict):
     new_message_in_db = models.Message(
         sender_id=data['sender_id'],

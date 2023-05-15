@@ -2,11 +2,10 @@ import models
 from sqlalchemy.orm import Session
 from schemas import UserCreate, UserOut
 from datetime import datetime
-from auth import Auth
+from services.AuthService import Auth
 from fastapi import HTTPException
 
 auth_handler = Auth()
-
 
 
 def get_users(db: Session):
