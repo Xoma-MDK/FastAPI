@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI(title="FastAPI Chat", docs_url="/api/docs",
-              openapi_url="/api/openapi.json", version="1.0", debug=True, swagger_css_url="https://raw.githubusercontent.com/Itz-fork/Fastapi-Swagger-UI-Dark/main/assets/swagger_ui_dark.min.css")
+              openapi_url="/api/openapi.json", version="1.0", swagger_css_url="https://raw.githubusercontent.com/Itz-fork/Fastapi-Swagger-UI-Dark/main/assets/swagger_ui_dark.min.css")
 
 origins = [
     "http://localhost",
