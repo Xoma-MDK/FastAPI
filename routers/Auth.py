@@ -20,7 +20,7 @@ def get_db():  # Получает сессию для отправки запр�
 
 
 @auth_route.post('/signup', tags=["Auth"], response_model=schemas.Tokens)
-def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
+async def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if user.username == "" or user.password == "":
         raise HTTPException(400)
     if get_user(db, user.username) != None:
@@ -36,7 +36,7 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 @auth_route.post('/login', tags=["Auth"], response_model=schemas.Tokens)
-def login(user_details: schemas.UserLogin, db: Session = Depends(get_db)):
+async def login(user_details: schemas.UserLogin, db: Session = Depends(get_db)):
     user = get_user(db, user_details.username)
 
     if (user is None):
@@ -54,12 +54,11 @@ def login(user_details: schemas.UserLogin, db: Session = Depends(get_db)):
 
 
 @auth_route.post('/refresh', tags=["Auth"], response_model=schemas.Tokens)
-def refresh_token(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
+async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
     refresh_token = credentials.credentials
     user = get_user(db, auth_handler.decode_refresh_token(refresh_token))
     if (not auth_handler.verify_Tokens(refresh_token, user.token)):
         update_user_refresh_token(db, user, None)
-        print(123)
         raise HTTPException(status_code=401, detail='Invalid refresh token')
 
     new_token = auth_handler.refresh_token(refresh_token)
@@ -71,7 +70,7 @@ def refresh_token(credentials: HTTPAuthorizationCredentials = Security(security)
 
 
 @auth_route.post('/logout', tags=["Auth"], response_model=None)
-def logout(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
+async def logout(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
     token = credentials.credentials
 
     if (auth_handler.decode_token(token)):
