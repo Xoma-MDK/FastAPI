@@ -13,8 +13,10 @@ def get_file_from_db(db: Session, user_id):
 
 def get_file_size(filename, path: str = None):
     file_path = f'{UPLOADED_FILES_PATH}{filename}'
+
     if path:
         file_path = f'{path}{filename}'
+
     return os.path.getsize(file_path)
 
 
@@ -28,6 +30,7 @@ async def save_file_to_uploads(file, filename):
 def delete_file_from_uploads(file_name):
     try:
         os.remove(UPLOADED_FILES_PATH + file_name)
+
     except Exception as e:
         print(e)
 
@@ -40,15 +43,19 @@ def add_file_to_db(db: Session, **kwargs):
         mime_type=kwargs['file'].content_type,
         edited_at=datetime.now()
     )
+
     db.add(new_file)
     db.commit()
     db.refresh(new_file)
+
     return new_file
 
 
 def update_file_in_db(db: Session, **kwargs):
     update_file = db.query(models.Avatars).filter(
-        models.Avatars.user_id == kwargs['user_id']).first()
+        models.Avatars.user_id == kwargs['user_id']
+    ).first()
+
     update_file.name = kwargs['name']
     update_file.user_id = kwargs['user_id']
     update_file.size = kwargs['file_size']
@@ -57,6 +64,7 @@ def update_file_in_db(db: Session, **kwargs):
 
     db.commit()
     db.refresh(update_file)
+
     return update_file
 
 

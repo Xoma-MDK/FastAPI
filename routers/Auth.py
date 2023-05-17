@@ -11,7 +11,7 @@ security = HTTPBearer()
 auth_handler = Auth()
 
 
-def get_db():  # Получает сессию для отправки запросов
+def get_db():
     db = SessionLocal()
     try:
         yield db
@@ -19,8 +19,10 @@ def get_db():  # Получает сессию для отправки запр�
         db.close()
 
 
-@auth_route.post('/signup', tags=["Auth"], response_model=schemas.Tokens, status_code=status.HTTP_201_CREATED)
-async def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
+@auth_route.post('/signup', tags=["Auth"], status_code=status.HTTP_201_CREATED)
+async def signup(
+        user: schemas.UserCreate,
+        db: Session = Depends(get_db)) -> schemas.Tokens:
     if user.username == "" or user.password == "":
         raise HTTPException(400)
     if get_user(db, user.username) != None:
@@ -29,14 +31,17 @@ async def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     user = post_user(db, user)
     access_token = auth_handler.encode_token(user.username)
     refresh_token = auth_handler.encode_refresh_token(user.username)
+
     update_user_refresh_token(
         db, user, auth_handler.get_token_hash(refresh_token))
 
     return schemas.Tokens(access_token=access_token, refresh_token=refresh_token)
 
 
-@auth_route.post('/login', tags=["Auth"], response_model=schemas.Tokens, status_code=status.HTTP_200_OK)
-async def login(user_details: schemas.UserLogin, db: Session = Depends(get_db)):
+@auth_route.post('/login', tags=["Auth"], status_code=status.HTTP_200_OK)
+async def login(
+        user_details: schemas.UserLogin,
+        db: Session = Depends(get_db)) -> schemas.Tokens:
     user = get_user(db, user_details.username)
 
     if (user is None):
@@ -47,30 +52,38 @@ async def login(user_details: schemas.UserLogin, db: Session = Depends(get_db)):
 
     access_token = auth_handler.encode_token(user.username)
     refresh_token = auth_handler.encode_refresh_token(user.username)
+
     update_user_refresh_token(
         db, user, auth_handler.get_token_hash(refresh_token))
 
     return schemas.Tokens(access_token=access_token, refresh_token=refresh_token)
 
 
-@auth_route.post('/refresh', tags=["Auth"], response_model=schemas.Tokens, status_code=status.HTTP_200_OK)
-async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
+@auth_route.post('/refresh', tags=["Auth"], status_code=status.HTTP_200_OK)
+async def refresh_token(
+        credentials: HTTPAuthorizationCredentials = Security(security),
+        db: Session = Depends(get_db)) -> schemas.Tokens:
+
     refresh_token = credentials.credentials
     user = get_user(db, auth_handler.decode_refresh_token(refresh_token))
+
     if (not auth_handler.verify_Tokens(refresh_token, user.token)):
         update_user_refresh_token(db, user, None)
         raise HTTPException(status_code=401, detail='Invalid refresh token')
 
     new_token = auth_handler.refresh_token(refresh_token)
     refresh_token = auth_handler.encode_refresh_token(user.username)
+
     update_user_refresh_token(
         db, user, auth_handler.get_token_hash(refresh_token))
 
     return schemas.Tokens(access_token=new_token, refresh_token=refresh_token)
 
 
-@auth_route.post('/logout', tags=["Auth"], response_model=None, status_code=status.HTTP_200_OK)
-async def logout(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
+@auth_route.post('/logout', tags=["Auth"], status_code=status.HTTP_200_OK)
+async def logout(
+        credentials: HTTPAuthorizationCredentials = Security(security),
+        db: Session = Depends(get_db)):
     token = credentials.credentials
 
     if (auth_handler.decode_token(token)):

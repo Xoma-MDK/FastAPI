@@ -12,6 +12,7 @@ app.include_router(Auth.auth_route, prefix="/api/auth")
 app.include_router(Messages.messages_route, prefix="/api/messages")
 app.include_router(User.user_route, prefix="/api/users")
 app.include_router(Avatar.avatar_route, prefix="/api/avatar")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
