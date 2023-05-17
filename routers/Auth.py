@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Security, HTTPException
+from fastapi import APIRouter, Depends, Security, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from database import SessionLocal
 from sqlalchemy.orm import Session
@@ -19,7 +19,7 @@ def get_db():  # Получает сессию для отправки запр�
         db.close()
 
 
-@auth_route.post('/signup', tags=["Auth"], response_model=schemas.Tokens)
+@auth_route.post('/signup', tags=["Auth"], response_model=schemas.Tokens, status_code=status.HTTP_201_CREATED)
 async def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if user.username == "" or user.password == "":
         raise HTTPException(400)
@@ -35,7 +35,7 @@ async def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return schemas.Tokens(access_token=access_token, refresh_token=refresh_token)
 
 
-@auth_route.post('/login', tags=["Auth"], response_model=schemas.Tokens)
+@auth_route.post('/login', tags=["Auth"], response_model=schemas.Tokens, status_code=status.HTTP_200_OK)
 async def login(user_details: schemas.UserLogin, db: Session = Depends(get_db)):
     user = get_user(db, user_details.username)
 
@@ -53,7 +53,7 @@ async def login(user_details: schemas.UserLogin, db: Session = Depends(get_db)):
     return schemas.Tokens(access_token=access_token, refresh_token=refresh_token)
 
 
-@auth_route.post('/refresh', tags=["Auth"], response_model=schemas.Tokens)
+@auth_route.post('/refresh', tags=["Auth"], response_model=schemas.Tokens, status_code=status.HTTP_200_OK)
 async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
     refresh_token = credentials.credentials
     user = get_user(db, auth_handler.decode_refresh_token(refresh_token))
@@ -69,7 +69,7 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(sec
     return schemas.Tokens(access_token=new_token, refresh_token=refresh_token)
 
 
-@auth_route.post('/logout', tags=["Auth"], response_model=None)
+@auth_route.post('/logout', tags=["Auth"], response_model=None, status_code=status.HTTP_200_OK)
 async def logout(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
     token = credentials.credentials
 

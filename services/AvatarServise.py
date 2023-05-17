@@ -4,6 +4,7 @@ from sqlalchemy import or_
 from settings import UPLOADED_FILES_PATH
 import os
 from datetime import datetime
+from uuid import uuid4
 
 
 def get_file_from_db(db: Session, user_id):
@@ -66,4 +67,5 @@ def delete_file_from_db(db: Session, file_info_from_db):
 
 def format_filename(file):
     filename, ext = os.path.splitext(file.filename)
+    filename = uuid4()
     return filename + ext
