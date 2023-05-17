@@ -67,5 +67,5 @@ def delete_file_from_db(db: Session, file_info_from_db):
 
 def format_filename(file):
     filename, ext = os.path.splitext(file.filename)
-    filename = uuid4()
+    filename = str(uuid4())
     return filename + ext

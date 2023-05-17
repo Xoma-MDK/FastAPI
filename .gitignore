@@ -10,3 +10,5 @@
 settings.py
 .vscode/*
 .vscode
+uploaded_files/*
+uploaded_files
