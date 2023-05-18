@@ -27,6 +27,7 @@ async def message_get(
         recipient_id: Optional[int] = Query(None),
         group_id: Optional[int] = Query(None),
         limit: Optional[int] = Query(50),
+        offset: Optional[int] = Query(0),
         credentials: HTTPAuthorizationCredentials = Security(security),
         db: Session = Depends(get_db)):
 
@@ -39,11 +40,11 @@ async def message_get(
             raise HTTPException(400)
 
         if recipient_id != None:
-            messages = await get_messages(db, sender, recipient, None, limit)
+            messages = await get_messages(db, sender, recipient, None, limit, offset)
             return messages
 
         if group_id != None:
-            messages = await get_messages(db, sender, None, group_id, limit)
+            messages = await get_messages(db, sender, None, group_id, limit, offset)
             return messages
 
     else:

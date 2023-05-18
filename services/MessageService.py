@@ -34,7 +34,8 @@ async def get_messages(
     sender_user: models.User,
     recipient_user: models.User = None,
     group_id: int = None,
-    limit: int = 50
+    limit: int = 50,
+    offset: int = 0,
 ):
     messages = []
     if recipient_user != None:
@@ -45,7 +46,7 @@ async def get_messages(
                 and_(models.Message.sender == recipient_user,
                      models.Message.recipient == sender_user)
             )
-        ).order_by(models.Message.created_at.desc()).limit(limit).all()
+        ).order_by(models.Message.created_at.desc()).limit(limit).offset(offset).all()
         if messages_id_db != []:
             for message_in_db in messages_id_db:
                 message = Message(
@@ -59,7 +60,7 @@ async def get_messages(
     if group_id != None:
         messages_id_db = db.query(models.Message).filter(
             models.Message.group_id == group_id
-        ).order_by(models.Message.created_at.asc()).limit(limit).all()
+        ).order_by(models.Message.created_at.desc()).limit(limit).offset(offset).all()
         if messages_id_db != []:
             for message_in_db in messages_id_db:
                 message = Message(
