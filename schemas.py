@@ -5,13 +5,16 @@ from datetime import datetime
 
 
 class UserBase(BaseModel):
-    username: str
+    name: str
+    surname: str
+    email: str
 
     class Config:
         orm_mode = True
 
 
-class UserLogin(UserBase):
+class UserLogin(BaseModel):
+    email: str
     password: str
 
     class Config:
@@ -53,6 +56,13 @@ class MessageOut(BaseModel):
     group_id: Union[int, None]
     message_text: str
     created_at: str
+    readed: bool
+
+
+class Dialog(BaseModel):
+    recipient_id: int
+    last_message: str
+    count_unread_messages: int
 
 
 class MessageEncoder(json.JSONEncoder):

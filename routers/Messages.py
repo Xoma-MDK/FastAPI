@@ -1,11 +1,11 @@
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Depends, Query, Security, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from database import SessionLocal
 from sqlalchemy.orm import Session
 import schemas
 from services.AuthService import Auth
-from services.MessageService import get_messages, new_message, message_to_out_json
+from services.MessageService import get_messages, new_message, message_to_out_json, get_dialog, get_dialogs
 from services.UserService import get_user, get_user_by_id
 import json
 
@@ -47,6 +47,45 @@ async def message_get(
             messages = await get_messages(db, sender, None, group_id, limit, offset)
             return messages
 
+    else:
+        auth_handler.decode_token(credentials.credentials)
+
+
+@messages_route.get('/dialog', tags=["Message"])
+async def message_get(
+        recipient_id: Optional[int] = Query(None),
+        credentials: HTTPAuthorizationCredentials = Security(security),
+        db: Session = Depends(get_db)) -> schemas.Dialog:
+
+    if (auth_handler.decode_token(credentials.credentials)):
+        token = credentials.credentials
+        sender = get_user(db, auth_handler.decode_token(token))
+        recipient = get_user_by_id(db, recipient_id)
+
+        if recipient_id == None:
+            raise HTTPException(404)
+        dialog = get_dialog(db, sender, recipient)
+        if dialog == None:
+            raise HTTPException(404)
+        return dialog
+    else:
+        auth_handler.decode_token(credentials.credentials)
+
+
+@messages_route.get('/dialogs', tags=["Message"])
+async def message_get(
+        credentials: HTTPAuthorizationCredentials = Security(security),
+        db: Session = Depends(get_db)) -> List[schemas.Dialog]:
+
+    if (auth_handler.decode_token(credentials.credentials)):
+        token = credentials.credentials
+        sender = get_user(db, auth_handler.decode_token(token))
+
+        dialogs = get_dialogs(db, sender)
+        print(dialogs)
+        if dialogs == None:
+            raise HTTPException(404)
+        return dialogs
     else:
         auth_handler.decode_token(credentials.credentials)
 
