@@ -60,8 +60,8 @@ class MessageOut(BaseModel):
 
 
 class Dialog(BaseModel):
-    recipient_id: int
-    last_message: str
+    recipient: UserOut
+    last_message: MessageOut
     count_unread_messages: int
 
 

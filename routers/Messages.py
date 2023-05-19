@@ -82,7 +82,6 @@ async def message_get(
         sender = get_user(db, auth_handler.decode_token(token))
 
         dialogs = get_dialogs(db, sender)
-        print(dialogs)
         if dialogs == None:
             raise HTTPException(404)
         return dialogs

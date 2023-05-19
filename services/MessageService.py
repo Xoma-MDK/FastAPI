@@ -31,6 +31,19 @@ def message_to_out_json(message: models.Message) -> str:
     return json.dumps(message_out, cls=MessageEncoder)
 
 
+def message_to_out(message: models.Message) -> str:
+    message_out = MessageOut(
+        id=message.id,
+        sender_id=message.sender_id,
+        recipient_id=message.recipient_id,
+        group_id=message.group_id,
+        message_text=message.message_text,
+        created_at=message.created_at.isoformat(),
+        readed=message.readed
+    )
+    return message_out
+
+
 async def get_messages(
     db: Session,
     sender_user: models.User,
@@ -58,7 +71,8 @@ async def get_messages(
                     sender_id=message_in_db.sender_id,
                     recipient_id=message_in_db.recipient_id,
                     message_text=message_in_db.message_text,
-                    created_at=message_in_db.created_at
+                    created_at=message_in_db.created_at,
+                    readed=message_in_db.readed
                 )
                 messages.append(message)
             db.add_all(messages_id_db)
@@ -99,8 +113,8 @@ def get_dialog(db: Session, sender: models.User, recipient: models.User) -> Dial
         models.Message.readed == False
     ).count()
     return Dialog(
-        recipient_id=recipient.id,
-        last_message=message_to_out_json(message),
+        recipient=recipient,
+        last_message=message_to_out(message),
         count_unread_messages=count_unread_messages)
 
 
