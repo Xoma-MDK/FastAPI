@@ -25,7 +25,6 @@ def get_db():
 
 @avatar_route.get("/download", tags=["Avatar"], status_code=status.HTTP_200_OK)
 async def download_file(
-        response: Response,
         user_id: int,
         db: Session = Depends(get_db),
         credentials: HTTPAuthorizationCredentials = Security(security)):
