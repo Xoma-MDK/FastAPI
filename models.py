@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, String, TIMESTAMP, Text, text
+from sqlalchemy import Column, ForeignKey, String, TIMESTAMP, Text, text, BOOLEAN
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import relationship
 from database import Base, engine
@@ -8,7 +8,9 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(INTEGER(11), primary_key=True)
-    username = Column(String(50), nullable=False, unique=True)
+    name = Column(String(100), nullable=False)
+    surname = Column(String(100), nullable=False)
+    email = Column(String(150), nullable=False, unique=True)
     password_hash = Column(String(255), nullable=False)
     token = Column(String(255), nullable=True)
     last_active_at = Column(TIMESTAMP, nullable=False,
@@ -48,6 +50,7 @@ class Message(Base):
     message_text = Column(Text, nullable=False)
     created_at = Column(TIMESTAMP, nullable=False,
                         server_default=text("CURRENT_TIMESTAMP"))
+    readed = Column(BOOLEAN, default=0)
 
     group = relationship('ChatGroup')
     recipient = relationship(
@@ -76,17 +79,6 @@ class Avatars(Base):
     mime_type = Column(String(length=150))
     edited_at = Column(TIMESTAMP, nullable=False,
                        server_default=text("CURRENT_TIMESTAMP"))
-
-
-class UnreadMessage(Base):
-    __tablename__ = 'unread_messages'
-
-    id = Column(INTEGER(11), primary_key=True)
-    user_id = Column(ForeignKey('users.id'), nullable=False, index=True)
-    message_id = Column(ForeignKey('messages.id'), nullable=False, index=True)
-
-    message = relationship('Message')
-    user = relationship('User')
 
 
 Base.metadata.create_all(engine)

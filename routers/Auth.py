@@ -23,14 +23,14 @@ def get_db():
 async def signup(
         user: schemas.UserCreate,
         db: Session = Depends(get_db)) -> schemas.Tokens:
-    if user.username == "" or user.password == "":
+    if user.email == "" or user.password == "":
         raise HTTPException(400)
-    if get_user(db, user.username) != None:
+    if get_user(db, user.email) != None:
         raise HTTPException(status_code=409, detail='Account already exists')
 
     user = post_user(db, user)
-    access_token = auth_handler.encode_token(user.username)
-    refresh_token = auth_handler.encode_refresh_token(user.username)
+    access_token = auth_handler.encode_token(user.email)
+    refresh_token = auth_handler.encode_refresh_token(user.email)
 
     update_user_refresh_token(
         db, user, auth_handler.get_token_hash(refresh_token))
@@ -42,16 +42,16 @@ async def signup(
 async def login(
         user_details: schemas.UserLogin,
         db: Session = Depends(get_db)) -> schemas.Tokens:
-    user = get_user(db, user_details.username)
+    user = get_user(db, user_details.email)
 
     if (user is None):
-        raise HTTPException(status_code=401, detail='Invalid username')
+        raise HTTPException(status_code=401, detail='Invalid email')
 
     if (not auth_handler.verify_password(user_details.password, user.password_hash)):
         raise HTTPException(status_code=401, detail='Invalid password')
 
-    access_token = auth_handler.encode_token(user.username)
-    refresh_token = auth_handler.encode_refresh_token(user.username)
+    access_token = auth_handler.encode_token(user.email)
+    refresh_token = auth_handler.encode_refresh_token(user.email)
 
     update_user_refresh_token(
         db, user, auth_handler.get_token_hash(refresh_token))
@@ -66,13 +66,14 @@ async def refresh_token(
 
     refresh_token = credentials.credentials
     user = get_user(db, auth_handler.decode_refresh_token(refresh_token))
-
+    if user == None:
+        raise HTTPException(status_code=404, detail="User not found")
     if (not auth_handler.verify_Tokens(refresh_token, user.token)):
         update_user_refresh_token(db, user, None)
         raise HTTPException(status_code=401, detail='Invalid refresh token')
 
     new_token = auth_handler.refresh_token(refresh_token)
-    refresh_token = auth_handler.encode_refresh_token(user.username)
+    refresh_token = auth_handler.encode_refresh_token(user.email)
 
     update_user_refresh_token(
         db, user, auth_handler.get_token_hash(refresh_token))

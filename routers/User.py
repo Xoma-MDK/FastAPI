@@ -4,7 +4,7 @@ from database import SessionLocal
 from sqlalchemy.orm import Session
 import schemas
 from services.AuthService import Auth, update_user_refresh_token
-from services.UserService import get_user, get_user_by_id, get_users, update_user_name
+from services.UserService import get_user, get_user_by_id, get_users, update_user
 
 auth_handler = Auth()
 user_route = APIRouter()
@@ -38,7 +38,7 @@ async def user(
 
     if (auth_handler.decode_token(credentials.credentials)):
         user = get_user_by_id(db, user_id)
-        return schemas.UserOut(id=user.id, username=user.username)
+        return schemas.UserOut(id=user.id, email=user.email, name=user.name, surname=user.surname)
     else:
         auth_handler.decode_token(credentials.credentials)
 
@@ -53,7 +53,7 @@ async def me(
 
         if user == None:
             raise HTTPException(404)
-        return schemas.UserOut(id=user.id, username=user.username)
+        return schemas.UserOut(id=user.id, email=user.email, name=user.name, surname=user.surname)
     else:
         auth_handler.decode_token(credentials.credentials)
 
@@ -69,9 +69,9 @@ async def me_edit(
         user = get_user(db, auth_handler.decode_token(token))
 
         if user != None:
-            user = update_user_name(db, user, new_user.username)
-            new_token = auth_handler.encode_token(user.username)
-            refresh_token = auth_handler.encode_refresh_token(user.username)
+            user = update_user(db, user, new_user)
+            new_token = auth_handler.encode_token(user.email)
+            refresh_token = auth_handler.encode_refresh_token(user.email)
             update_user_refresh_token(
                 db, user, auth_handler.get_token_hash(refresh_token))
             return schemas.Tokens(access_token=new_token, refresh_token=refresh_token)
