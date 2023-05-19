@@ -47,6 +47,7 @@ class Message(BaseModel):
     group_id: Union[int, None]
     message_text: str
     created_at: datetime
+    readed: bool
 
 
 class MessageOut(BaseModel):
